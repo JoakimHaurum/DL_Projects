@@ -3,15 +3,26 @@
 @author: Joakim Bruslund Haurum
 """
 
-from GAN import GAN
 from keras.models import Model
 from keras.layers import Input, Dense, BatchNormalization, Conv2D, LeakyReLU, Flatten, Deconv2D, Activation, Reshape
-from utils import determine_scale_factor
+
+from GAN import GAN
+
+from utils.data_ops import determine_scale_factor
 
 class DCGAN(GAN):
+    """
+    Class for constructing a Deep Convolutional Generative Adversarial Network
+    
+    Based on Radford et al. (2015) https://arxiv.org/abs/1511.06434
+    """
+    
     name = "DCGAN"
     
     def discriminator(self, img_shape, base_feature_count = 64):
+        """
+        Constrcuts a Convolutional discriminator for the DCGAN
+        """     
         img_in = Input(img_shape, name = "D_Input")
         x = img_in
         
@@ -32,7 +43,10 @@ class DCGAN(GAN):
         return Model(img_in, x)
     
 
-    def generator(self, noise_dim, img_shape, base_feature_count = 128):       
+    def generator(self, noise_dim, img_shape, base_feature_count = 128):  
+        """
+        Constrcuts a Convolutional generatpr for the DCGAN
+        """     
         noise_in = Input(noise_dim, name = "G_Input")
         x = noise_in
         
@@ -56,6 +70,6 @@ class DCGAN(GAN):
     
     
 if __name__ == "__main__":
-    gan = DCGAN(10, 64, 100, "mnist", "Loss_values", "Images", "Model_checkpoints")
+    gan = DCGAN(10, 64, 100, "mnist", "Loss", "Images", "Saved_models")
     gan.pretty_print()
     gan.fit()

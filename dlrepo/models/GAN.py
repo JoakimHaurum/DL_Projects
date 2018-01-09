@@ -3,34 +3,44 @@
 @author: Joakim Bruslund Haurum
 """
 
+import os
+import time
 import numpy as np
-from datasetLoader import DATASET
-from utils import save_img_grid, save_loss_log, save_model
+
 from keras.models import Model
 from keras.layers import Input, Dense, BatchNormalization, LeakyReLU, Flatten, Activation, Reshape
 from keras.optimizers import Adam
 from keras.utils import plot_model
-import os
-import time
+
+from utils.datasets import DATASET
+from utils.saving import save_img_grid, save_loss_log, save_model
+from utils.data_ops import scale
 
 
-class GAN(object):
+class GAN():
+    """
+    Class for constructing a simple Generative Adversarial Network.
+    
+    Based on Goodfellow et al. (2014) https://arxiv.org/pdf/1406.2661
+    """
+    
     name = "GAN"
     
     def __init__(self, epochs, batch_size, noise_dim, dataset, loss_path, result_path, checkpoint_path):
         creation_time = time.strftime('%Y%m%d-%H%M%S')        
-        dir_prefix = self.name + "_" + creation_time + "/"
+        dir_prefix = self.name + "_" + creation_time
         self.epochs = epochs
         self.batch_size = batch_size
         self.noise_dim = noise_dim
         self.dataset = dataset
-        self.loss_path = dir_prefix+loss_path
-        self.result_path = dir_prefix+result_path
-        self.checkpoint_path = dir_prefix+checkpoint_path
+        self.loss_path = loss_path + "/" + dir_prefix
+        self.result_path = result_path + "/" + dir_prefix
+        self.checkpoint_path = checkpoint_path + "/" + dir_prefix
         
         if self.dataset.lower() in DATASET:
             #Load dataset
             self.data_x, self.data_y = DATASET[self.dataset]()
+            self.data_x = scale(self.data_x, -1, 1, 0, 255)
             
             #Set dimensions for input of discriminator
             self.input_height = self.data_x.shape[-2]
@@ -55,6 +65,9 @@ class GAN(object):
         
         
     def discriminator(self, img_shape, base_feature_count = 512, scale_steps = 4):
+        """
+        Constrcuts a MLP discriminator for the GAN
+        """
         assert base_feature_count / 2**(scale_steps-1) >= 1
         
         img_in = Input(img_shape, name = "D_Input")
@@ -74,6 +87,9 @@ class GAN(object):
         
     
     def generator(self, noise_dim, img_shape, base_feature_count = 128, scale_steps = 3):
+        """
+        Constrcuts a MLP generatpr for the GAN
+        """
         noise_in = Input(noise_dim, name = "G_Input")
         x = noise_in
         
@@ -89,7 +105,10 @@ class GAN(object):
         return Model(noise_in, x)
     
     
-    def build(self, z, img_shape):        
+    def build(self, z, img_shape):   
+        """
+        Builds and compiles the discriminator, generator, and the combined network
+        """     
         self.disNet = self.discriminator(img_shape)
         self.disNet.compile(optimizer = Adam(lr=0.0002, beta_1 = 0.5), loss = "binary_crossentropy")
         
@@ -113,6 +132,10 @@ class GAN(object):
     
     
     def fit(self, k = 1):
+        """
+        Trains the GAN based on the inputs to supplied when initializing the GAN object
+        Trains the generator once per k discriminator iterations
+        """
         
         if not os.path.exists(self.checkpoint_path): 
             os.makedirs(self.checkpoint_path)
@@ -169,19 +192,29 @@ class GAN(object):
             save_model(self.checkpoint_path, "/dis", self.disNet, epoch)
             save_model(self.checkpoint_path, "/gan", self.gan, epoch)
             save_img_grid(self.result_path, "/fake_imgs"+"_"+str(epoch), self.generate(sample_generated_noise), 8, 8, "Epoch: " + str(epoch))
-            save_loss_log(self.loss_path, "/loss"+"_"+str(epoch), training_history)
+            save_loss_log(self.loss_path, "/loss", training_history)
             
                 
     
     def generate(self, noise_input):
+        """
+        Returns output from the Generator net
+        """
         return self.genNet.predict(noise_input)
     
     
     def predict(self, img_input):
+        """
+        Returns output from the Discriminator net
+        """
         return self.disNet.predict(img_input)
     
         
     def pretty_print(self):
+        """
+        Returns supplied values in a pretty print out format
+        (Need adjustment)
+        """
         print("\nepochs = \t\t{}\nbatch_size = \t\t{}\nnoise_dim = \t\t{}\ndataset = \t\t{}\
               \nloss_path = \t\t{}\nresult_path = \t\t{}\ncheckpoint_path = \t{}\
               \ninput height = \t\t{}\ninput width = \t\t{}\ninput channels = \t{}\
@@ -197,6 +230,6 @@ class GAN(object):
             
 
 if __name__ == "__main__":
-    gan = GAN(10, 64, 100, "mnist", "Loss_values", "Images", "Model_checkpoints")
+    gan = GAN(10, 64, 100, "mnist", "Loss", "Images", "Saved_models")
     gan.pretty_print()
     gan.fit()
