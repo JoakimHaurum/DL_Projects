@@ -17,11 +17,23 @@ GAN
 Implementation of a simple Fully-Connected based Generative Adversarial Network as proposed by [Goodfellow et al. (2014)](https://arxiv.org/pdf/1406.2661)
 
 
+### MNIST
+<img src="figures/GAN_MNIST.gif" align = "center" />
+
+### CIFAR10
+<img src="figures/GAN_CIFAR10.gif" align = "center" />
+
 
 DCGAN
 -------------------
 Implementation of a simple Deep Convolutional based Generative Adversarial Network as proposed by [Radford et al. (2015)](https://arxiv.org/pdf/1511.06434)
 
+
+### MNIST
+<img src="figures/DCGAN_MNIST.gif" align = "center" />
+
+### CIFAR10
+<img src="figures/DCGAN_CIFAR10.gif" align = "center" />
 
 
 Siamese Network
