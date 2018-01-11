@@ -4,7 +4,7 @@ Repository of the different Deep Learning projects that I'm working on in my spa
 
 For the projects I use the Keras framework with the Theano framworks as backend.
 
-Currently looking into trying out different type of GAN networks, as well as verification and segmentation networks (e.g. siamese networks and UNet)
+Currently looking into trying out different type of GAN networks, as well as verification and segmentation networks (e.g. siamese networks and UNet). I believe the current GAN results are not ideal, and I'll try and look into whether it is the code or hyperparameters/architecture, as soon as possible.
 
 **Table of Contents**
 - [GAN](#gan)
